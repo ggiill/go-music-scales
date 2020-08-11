@@ -8,7 +8,7 @@ import (
 
 func TestAllNotes(t *testing.T) {
 	cof := scales.CircleOfFifths()
-	modes := scales.CreateModes()
+	modes := scales.Modes()
 	for _, root := range cof {
 		for mode, _ := range modes {
 			scale, err := scales.NewScale(root, mode)

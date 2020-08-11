@@ -6,10 +6,9 @@ import (
 )
 
 const (
-	NoteLetters   string = "ABCDEFG"
-	NoteHalf      int    = 1
-	NoteWhole     int    = 2
-	NoteWholeHalf int    = 3
+	NoteLetters string = "ABCDEFG"
+	NoteHalf    int    = 1
+	NoteWhole   int    = 2
 )
 
 var circleOfFifths = []string{
@@ -29,14 +28,8 @@ func CircleOfFifths() []string {
 	return circleOfFifths
 }
 
-var scaleModes = []string{"Ionian", "Dorian", "Phrygian", "Lydian", "Myxolydian", "Aeolian", "Locrian"}
-
-func ScaleModes() []string {
-	return scaleModes
-}
-
-func CreateModes() map[string][]int {
-	scaleModes := ScaleModes()
+func Modes() map[string][]int {
+	scaleModes := []string{"Ionian", "Dorian", "Phrygian", "Lydian", "Myxolydian", "Aeolian", "Locrian"}
 	modes := map[string][]int{}
 	modeSteps := []int{NoteWhole, NoteWhole, NoteHalf, NoteWhole, NoteWhole, NoteWhole, NoteHalf}
 	for modeIndex, modeName := range scaleModes {
@@ -45,9 +38,28 @@ func CreateModes() map[string][]int {
 	// Gotta include Major & Minor (which are aliases of the modes above):
 	modes["Major"] = modes["Ionian"]
 	modes["Minor"] = modes["Aeolian"]
-	// Weird scales:
-	modes["Harmonic Minor"] = []int{NoteWhole, NoteHalf, NoteWhole, NoteWhole, NoteHalf, NoteWholeHalf, NoteHalf}
+	// Weird scales: (more to come)
+	modes["Harmonic Minor"] = []int{NoteWhole, NoteHalf, NoteWhole, NoteWhole, NoteHalf, NoteWhole + NoteHalf, NoteHalf}
 	return modes
+}
+
+var notes = map[int][]string{
+	0:  []string{"B#", "C", "Dbb"},
+	1:  []string{"C#", "Db"},
+	2:  []string{"D", "Ebb"},
+	3:  []string{"D#", "Eb"},
+	4:  []string{"E", "Fb"},
+	5:  []string{"E#", "F", "Gbb"},
+	6:  []string{"F#", "Gb"},
+	7:  []string{"F##", "G", "Abb"},
+	8:  []string{"G#", "Ab"},
+	9:  []string{"A", "Bbb"},
+	10: []string{"A#", "Bb"},
+	11: []string{"B", "Cb"},
+}
+
+func Notes() map[int][]string {
+	return notes
 }
 
 type Scale struct {
@@ -121,20 +133,7 @@ func NewScale(root string, mode string) (*Scale, error) {
 	s := new(Scale)
 	s.Root = root
 	s.Mode = mode
-	s.Modes = CreateModes()
-	s.Notes = map[int][]string{
-		0:  []string{"B#", "C", "Dbb"},
-		1:  []string{"C#", "Db"},
-		2:  []string{"D", "Ebb"},
-		3:  []string{"D#", "Eb"},
-		4:  []string{"E", "Fb"},
-		5:  []string{"E#", "F", "Gbb"},
-		6:  []string{"F#", "Gb"},
-		7:  []string{"F##", "G", "Abb"},
-		8:  []string{"G#", "Ab"},
-		9:  []string{"A", "Bbb"},
-		10: []string{"A#", "Bb"},
-		11: []string{"B", "Cb"},
-	}
+	s.Modes = Modes()
+	s.Notes = Notes()
 	return s, nil
 }
