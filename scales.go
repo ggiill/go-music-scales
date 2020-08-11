@@ -12,7 +12,18 @@ const (
 	NoteWholeHalf int    = 3
 )
 
-var circleOfFifths = []string{"C", "G", "D", "A", "B", "Cb", "F#", "Gb", "C#", "Db", "Ab", "Eb", "Bb", "F"}
+var circleOfFifths = []string{
+	"C",
+	"G",
+	"D",
+	"A",
+	"B", "Cb", // These are enharmonic
+	"F#", "Gb", // These are enharmonic
+	"C#", "Db", // These are enharmonic
+	"Ab",
+	"Eb",
+	"Bb",
+	"F"}
 
 func CircleOfFifths() []string {
 	return circleOfFifths
