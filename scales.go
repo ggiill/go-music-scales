@@ -77,7 +77,8 @@ func (s *Scale) Identify() {
 	default:
 		qualifier = "a"
 	}
-	fmt.Printf("I am %s %s %s scale and my notes are %s\n", qualifier, s.Root, s.Mode, strings.Join(s.GetNotes(), ", "))
+	fmt.Printf("I am %s %s %s scale and my notes are %s\n",
+		qualifier, s.Root, s.Mode, strings.Join(s.GetNotes(), ", "))
 }
 
 func (s *Scale) getNoteOptions() [][]string {
@@ -103,8 +104,8 @@ func (s *Scale) getNoteOptions() [][]string {
 
 func (s *Scale) GetNotes() []string {
 	rootNoteLetter := string(s.Root[0])
-	rootNoteLetterIndex := strings.Index(NoteLetters, rootNoteLetter)
-	scaleLetters := strings.Split(NoteLetters[rootNoteLetterIndex:]+NoteLetters[:rootNoteLetterIndex], "")
+	rnli := strings.Index(NoteLetters, rootNoteLetter) // rnli = root note letter index
+	scaleLetters := strings.Split(NoteLetters[rnli:]+NoteLetters[:rnli], "")
 	scale := []string{}
 	noteOptions := s.getNoteOptions()
 	for letterIndex, letterValue := range scaleLetters {
