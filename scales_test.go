@@ -17,8 +17,8 @@ func TestAllNotes(t *testing.T) {
 			}
 			notes := scale.GetNotes()
 			t.Logf("%s %s: %s\n", root, mode, notes)
-			if len(notes) != 7 {
-				t.Errorf("Error: %s %s scale did not return 7 notes", root, mode)
+			if len(notes) != 8 {
+				t.Errorf("Error: %s %s scale did not return 8 notes", root, mode)
 			}
 		}
 	}

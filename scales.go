@@ -2,7 +2,9 @@ package scales
 
 import (
 	"fmt"
+	"sort"
 	"strings"
+	"sync"
 )
 
 const (
@@ -16,6 +18,7 @@ var circleOfFifths = []string{
 	"G",
 	"D",
 	"A",
+	"E",
 	"B", "Cb", // These are enharmonic
 	"F#", "Gb", // These are enharmonic
 	"C#", "Db", // These are enharmonic
@@ -116,6 +119,7 @@ func (s *Scale) GetNotes() []string {
 			}
 		}
 	}
+	scale = append(scale, scale[0]) // Add the octave
 	return scale
 }
 
@@ -137,4 +141,87 @@ func NewScale(root string, mode string) (*Scale, error) {
 	s.Modes = Modes()
 	s.Notes = Notes()
 	return s, nil
+}
+
+func VerifyScaleLetters(notes []string) bool {
+	notes = DedupeNotes(notes)
+	sort.Strings(notes)
+	for noteIndex, noteValue := range notes {
+		noteValueLetter := noteValue[0]
+		if noteValueLetter != NoteLetters[noteIndex] {
+			return false
+		}
+	}
+	return true
+}
+
+func ScaleNoteMatch(notes []string, root string, mode string) (bool, error) {
+	if !VerifyScaleLetters(notes) {
+		return false, fmt.Errorf("%s: Not a valid scale", notes)
+	}
+	scale, err := NewScale(root, mode)
+	if err != nil {
+		return false, fmt.Errorf("%s %s: Not a valid root and mode", root, mode)
+	}
+LOOP:
+	for _, scaleNote := range scale.GetNotes() {
+		for _, note := range notes {
+			if scaleNote == note {
+				continue LOOP
+			}
+		}
+		return false, nil
+	}
+	return true, nil
+}
+
+func GetScalesFromNotes(notes []string) ([]string, error) {
+	if !VerifyScaleLetters(notes) {
+		return nil, fmt.Errorf("%s: Not a valid set of scale notes", notes)
+	}
+	var wg sync.WaitGroup
+	ch := make(chan string, 1)
+	scalesFromNotes := []string{}
+	cof := CircleOfFifths()
+	modes := Modes()
+	wg.Add(len(cof) * len(modes))
+	for _, root := range cof {
+		for mode := range modes {
+			go func(notes []string, root string, mode string) {
+				scaleNotes, err := ScaleNoteMatch(notes, root, mode)
+				if err != nil {
+					wg.Done()
+					return
+				}
+				if scaleNotes {
+					scaleName := root + " " + mode
+					ch <- scaleName
+					return
+				}
+				wg.Done()
+				return
+			}(notes, root, mode)
+		}
+	}
+	go func() {
+		for val := range ch {
+			scalesFromNotes = append(scalesFromNotes, val)
+			wg.Done()
+		}
+	}()
+	wg.Wait()
+	sort.Strings(scalesFromNotes)
+	return scalesFromNotes, nil
+}
+
+func DedupeNotes(notes []string) []string {
+	deduped := []string{}
+	dedupedMap := make(map[string]int)
+	for _, val := range notes {
+		dedupedMap[val]++
+	}
+	for val := range dedupedMap {
+		deduped = append(deduped, val)
+	}
+	return deduped
 }
