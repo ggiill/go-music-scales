@@ -1,3 +1,8 @@
+// Package scales provides functionality to get:
+//
+// - The notes of a scale given a root and mode
+//
+// - The scales corresponding to a given set of notes
 package scales
 
 import (
@@ -8,63 +13,76 @@ import (
 )
 
 const (
+	// NoteLetters are the valid letters for notes
 	NoteLetters string = "ABCDEFG"
-	NoteHalf    int    = 1
-	NoteWhole   int    = 2
+	// StepHalf is an enum for a half step
+	StepHalf int = 1
+	// StepWhole is an enum for a whole step
+	StepWhole int = 2
 )
 
 var circleOfFifths = []string{
-	"C", "B#", // These are enharmonic
+	"C", "B#", // enharmonic
 	"G",
 	"D",
 	"A",
-	"E", "Fb", // These are enharmonic
-	"B", "Cb", // These are enharmonic
-	"F#", "Gb", // These are enharmonic
-	"C#", "Db", // These are enharmonic
-	"Ab", "G#", // These are enharmonic
-	"Eb", "D#", // These are enharmonic
-	"Bb", "A#", // These are enharmonic
-	"F", "E#"} // These are enharmonic
+	"E", "Fb", // enharmonic
+	"B", "Cb", // enharmonic
+	"F#", "Gb", // enharmonic
+	"C#", "Db", // enharmonic
+	"Ab", "G#", // enharmonic
+	"Eb", "D#", // enharmonic
+	"Bb", "A#", // enharmonic
+	"F", "E#"} // enharmonic
 
+// CircleOfFifths is a constructor for the slice representing the
+// circle of fifths.
 func CircleOfFifths() []string {
 	return circleOfFifths
 }
 
+// Modes is a constructor for the main modes and additional scales.
 func Modes() map[string][]int {
 	scaleModes := []string{"Ionian", "Dorian", "Phrygian", "Lydian", "Myxolydian", "Aeolian", "Locrian"}
 	modes := map[string][]int{}
-	modeSteps := []int{NoteWhole, NoteWhole, NoteHalf, NoteWhole, NoteWhole, NoteWhole, NoteHalf}
+	modeSteps := []int{StepWhole, StepWhole, StepHalf, StepWhole, StepWhole, StepWhole, StepHalf}
 	for modeIndex, modeName := range scaleModes {
 		modes[modeName] = append(modeSteps[modeIndex:], modeSteps[:modeIndex]...)
 	}
-	// Gotta include Major & Minor (which are aliases of the modes above):
+	// Include Major & Minor (which are aliases of two of the modes above):
 	modes["Major"] = modes["Ionian"]
 	modes["Minor"] = modes["Aeolian"]
-	// Weird scales: (more to come)
-	modes["Harmonic Minor"] = []int{NoteWhole, NoteHalf, NoteWhole, NoteWhole, NoteHalf, NoteWhole + NoteHalf, NoteHalf}
+	// Weird scales:
+	// TODO: Add more
+	modes["Harmonic Minor"] = []int{StepWhole, StepHalf, StepWhole, StepWhole, StepHalf, StepWhole + StepHalf, StepHalf}
+	modes["Melodic Minor"] = []int{StepWhole, StepHalf, StepWhole, StepWhole, StepWhole, StepWhole, StepHalf}
+	modes["Phrygian Dominant"] = []int{StepHalf, StepWhole + StepHalf, StepHalf, StepWhole, StepHalf, StepWhole, StepWhole}
 	return modes
 }
 
 var notes = map[int][]string{
+	// Notes and their funky enharmonic equivalents
 	0:  []string{"B#", "C", "Dbb"},
 	1:  []string{"C#", "Db"},
 	2:  []string{"C##", "D", "Ebb"},
 	3:  []string{"D#", "Eb"},
 	4:  []string{"D##", "E", "Fb"},
 	5:  []string{"E#", "F", "Gbb"},
-	6:  []string{"F#", "Gb"},
+	6:  []string{"E##", "F#", "Gb"},
 	7:  []string{"F##", "G", "Abb"},
 	8:  []string{"G#", "Ab"},
 	9:  []string{"G##", "A", "Bbb"},
-	10: []string{"A#", "Bb"},
+	10: []string{"A#", "Bb", "Cbb"},
 	11: []string{"A##", "B", "Cb"},
 }
 
+// Notes is a constructor for the 12 notes and their enharmonic equivalents.
 func Notes() map[int][]string {
 	return notes
 }
 
+// Scale is a struct representing a musical scale. Scale objects should be
+// initialized using the NewScale constructor.
 type Scale struct {
 	Root  string
 	Mode  string
@@ -72,6 +90,7 @@ type Scale struct {
 	Notes map[int][]string
 }
 
+// Identify prints the name of the scale and its notes.
 func (s *Scale) Identify() {
 	var qualifier string
 	switch string(s.Root[0]) {
@@ -86,31 +105,38 @@ func (s *Scale) Identify() {
 
 func (s *Scale) getNoteOptions() [][]string {
 	var startingNoteIndex int
+	// Find the []string with the starting note of the scale:
 	for noteIndex, noteNotes := range s.Notes {
 		for _, noteAlias := range noteNotes {
 			if noteAlias == s.Root {
+				// We found it!
 				startingNoteIndex = noteIndex
 			}
 		}
 	}
 	noteList := [][]string{s.Notes[startingNoteIndex]}
 	noteOffset := startingNoteIndex
-	for index, offset := range s.Modes[s.Mode] {
+	modeSteps := s.Modes[s.Mode]
+	for index, offset := range modeSteps {
 		if index < 6 {
 			noteOffset += offset
-			noteOffset = noteOffset % 12
+			noteOffset = noteOffset % 12 // Mod for values >= 12 (12 tones)
 			noteList = append(noteList, s.Notes[noteOffset])
 		}
 	}
 	return noteList
 }
 
+// GetNotes returns a slice of the Scale's notes (based on the Scale's root and mode).
 func (s *Scale) GetNotes() []string {
+	// TODO: Add support for scales with !=8 notes (bebop, pentatonic, etc.)
 	rootNoteLetter := string(s.Root[0])
 	rnli := strings.Index(NoteLetters, rootNoteLetter) // rnli = root note letter index
+	// Build the scale (without accidentals):
 	scaleLetters := strings.Split(NoteLetters[rnli:]+NoteLetters[:rnli], "")
 	scale := []string{}
 	noteOptions := s.getNoteOptions()
+	// Iterate through the noteOptions and find the appropriate note (option):
 	for letterIndex, letterValue := range scaleLetters {
 		noteOptionLetters := noteOptions[letterIndex]
 		for _, noValue := range noteOptionLetters {
@@ -123,6 +149,7 @@ func (s *Scale) GetNotes() []string {
 	return scale
 }
 
+// NewScale is a constructor function to create a Scale object with defaults.
 func NewScale(root string, mode string) (*Scale, error) {
 	isInCOF := false
 	cof := CircleOfFifths()
@@ -153,6 +180,8 @@ func NewScale(root string, mode string) (*Scale, error) {
 	return s, nil
 }
 
+// VerifyScaleLetters checks the input notes to make sure they correspond
+// to ABCDEFG.
 func VerifyScaleLetters(notes []string) bool {
 	notes = DedupeNotes(notes)
 	sort.Strings(notes)
@@ -165,6 +194,7 @@ func VerifyScaleLetters(notes []string) bool {
 	return true
 }
 
+// ScaleNoteMatch checks the input slice of notes against a given Scale to see if they match.
 func ScaleNoteMatch(notes []string, root string, mode string) (bool, error) {
 	if !VerifyScaleLetters(notes) {
 		return false, fmt.Errorf("Error: %s: Not a valid scale", notes)
@@ -185,6 +215,7 @@ LOOP:
 	return true, nil
 }
 
+// GetScalesFromNotes iterates over all modes to find the modes that match the input notes.
 func GetScalesFromNotes(notes []string) ([]string, error) {
 	if !VerifyScaleLetters(notes) {
 		return nil, fmt.Errorf("Error: %s: Not a valid set of scale notes", notes)
@@ -227,6 +258,7 @@ func GetScalesFromNotes(notes []string) ([]string, error) {
 	return scalesFromNotes, nil
 }
 
+// DedupeNotes dedupes notes (dedupes repeated notes and octaves).
 func DedupeNotes(notes []string) []string {
 	deduped := []string{}
 	dedupedMap := make(map[string]int)
