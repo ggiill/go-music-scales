@@ -14,18 +14,18 @@ const (
 )
 
 var circleOfFifths = []string{
-	"C",
+	"C", "B#", // These are enharmonic
 	"G",
 	"D",
 	"A",
-	"E",
+	"E", "Fb", // These are enharmonic
 	"B", "Cb", // These are enharmonic
 	"F#", "Gb", // These are enharmonic
 	"C#", "Db", // These are enharmonic
-	"Ab",
-	"Eb",
-	"Bb",
-	"F"}
+	"Ab", "G#", // These are enharmonic
+	"Eb", "D#", // These are enharmonic
+	"Bb", "A#", // These are enharmonic
+	"F", "E#"} // These are enharmonic
 
 func CircleOfFifths() []string {
 	return circleOfFifths
@@ -49,16 +49,16 @@ func Modes() map[string][]int {
 var notes = map[int][]string{
 	0:  []string{"B#", "C", "Dbb"},
 	1:  []string{"C#", "Db"},
-	2:  []string{"D", "Ebb"},
+	2:  []string{"C##", "D", "Ebb"},
 	3:  []string{"D#", "Eb"},
-	4:  []string{"E", "Fb"},
+	4:  []string{"D##", "E", "Fb"},
 	5:  []string{"E#", "F", "Gbb"},
 	6:  []string{"F#", "Gb"},
 	7:  []string{"F##", "G", "Abb"},
 	8:  []string{"G#", "Ab"},
-	9:  []string{"A", "Bbb"},
+	9:  []string{"G##", "A", "Bbb"},
 	10: []string{"A#", "Bb"},
-	11: []string{"B", "Cb"},
+	11: []string{"A##", "B", "Cb"},
 }
 
 func Notes() map[int][]string {
@@ -139,6 +139,16 @@ func NewScale(root string, mode string) (*Scale, error) {
 	s.Root = root
 	s.Mode = mode
 	s.Modes = Modes()
+	isLegitMode := false
+	for modesMode := range s.Modes {
+		if modesMode == mode {
+			isLegitMode = true
+			break
+		}
+	}
+	if !isLegitMode {
+		return nil, fmt.Errorf("Error: Mode %s is not a supported mode", mode)
+	}
 	s.Notes = Notes()
 	return s, nil
 }
@@ -157,11 +167,11 @@ func VerifyScaleLetters(notes []string) bool {
 
 func ScaleNoteMatch(notes []string, root string, mode string) (bool, error) {
 	if !VerifyScaleLetters(notes) {
-		return false, fmt.Errorf("%s: Not a valid scale", notes)
+		return false, fmt.Errorf("Error: %s: Not a valid scale", notes)
 	}
 	scale, err := NewScale(root, mode)
 	if err != nil {
-		return false, fmt.Errorf("%s %s: Not a valid root and mode", root, mode)
+		return false, fmt.Errorf("Error: %s %s: Not a valid root and mode", root, mode)
 	}
 LOOP:
 	for _, scaleNote := range scale.GetNotes() {
@@ -177,7 +187,10 @@ LOOP:
 
 func GetScalesFromNotes(notes []string) ([]string, error) {
 	if !VerifyScaleLetters(notes) {
-		return nil, fmt.Errorf("%s: Not a valid set of scale notes", notes)
+		return nil, fmt.Errorf("Error: %s: Not a valid set of scale notes", notes)
+	}
+	if len(notes) < 7 {
+		return nil, fmt.Errorf("Error: %s: Need at least 7 notes", notes)
 	}
 	var wg sync.WaitGroup
 	ch := make(chan string, 1)
