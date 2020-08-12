@@ -60,7 +60,7 @@ func main() {
 			os.Exit(1)
 		} else {
 			scalesFormatted := strings.Join(scales, ", ")
-			fmt.Println(scalesFormatted)
+			fmt.Printf("These scales are comprised of the notes %s: %s", notesToScalesNotes, scalesFormatted)
 		}
 	}
 }
