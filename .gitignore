@@ -15,3 +15,4 @@
 # vendor/
 
 cmd/go-music-scales/main
+.DS_Store

@@ -3,7 +3,7 @@ package scales_test
 import (
 	"testing"
 
-	scales "github.com/gturetsky/go-music-scales"
+	scales "github.com/ggiill/go-music-scales"
 )
 
 func TestAllNotes(t *testing.T) {

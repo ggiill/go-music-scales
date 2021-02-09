@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	scales "github.com/gturetsky/go-music-scales"
+	scales "github.com/ggiill/go-music-scales"
 )
 
 func main() {
